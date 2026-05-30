@@ -5,51 +5,51 @@
 #include <string>
 #include <algorithm>
 #include <utility>
+#include <vector>
 #include "bst.h"
 
 void makeTree(BST<std::string>& tree, const char* filename) {
-    std::ifstream file(filename);
-    if (!file) {
-        std::cerr << "File error!" << std::endl;
+    std::ifstream sourceFile(filename);
+    if (!sourceFile.is_open()) {
         return;
     }
-
-    std::string word;
-    char ch;
-    while (file.get(ch)) {
-        if (std::isalpha(static_cast<unsigned char>(ch))) {
-            word += std::tolower(static_cast<unsigned char>(ch));
+    
+    std::string buffer;
+    unsigned char symbol;
+    
+    while (sourceFile.get(reinterpret_cast<char&>(symbol))) {
+        if (std::isalpha(symbol)) {
+            buffer += static_cast<char>(std::tolower(symbol));
         } else {
-            if (!word.empty()) {
-                tree.add(word);
-                word.clear();
+            if (!buffer.empty()) {
+                tree.insert(buffer);
+                buffer.clear();
             }
         }
     }
-    if (!word.empty()) {
-        tree.add(word);
+    
+    if (!buffer.empty()) {
+        tree.insert(buffer);
     }
-    file.close();
+    
+    sourceFile.close();
 }
 
 void printFreq(BST<std::string>& tree) {
-    auto freq = tree.getFreqVector();
-
-    std::sort(freq.begin(), freq.end(),
-              [](const std::pair<std::string, int>& a,
-                 const std::pair<std::string, int>& b) {
-                  return a.second > b.second;
-              });
-
-    for (const auto& p : freq) {
-        std::cout << p.first << ": " << p.second << std::endl;
-    }
-
-    std::ofstream out("result/freq.txt");
-    if (out.is_open()) {
-        for (const auto& p : freq) {
-            out << p.first << ": " << p.second << std::endl;
+    std::vector<std::pair<std::string, int>> statistics = tree.getAll();
+    
+    std::sort(statistics.begin(), statistics.end(),
+        [](const std::pair<std::string, int>& first,
+           const std::pair<std::string, int>& second) {
+            return first.second > second.second;
+        });
+    
+    std::ofstream outputFile("result/freq.txt");
+    
+    for (const auto& entry : statistics) {
+        std::cout << entry.first << ": " << entry.second << std::endl;
+        if (outputFile.is_open()) {
+            outputFile << entry.first << ": " << entry.second << std::endl;
         }
-        out.close();
     }
 }
