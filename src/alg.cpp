@@ -5,51 +5,50 @@
 #include <string>
 #include <algorithm>
 #include <utility>
-#include <vector>
 #include "bst.h"
 
 void makeTree(BST<std::string>& tree, const char* filename) {
-    std::ifstream sourceFile(filename);
-    if (!sourceFile.is_open()) {
+    std::ifstream file(filename);
+    if (!file) {
         return;
     }
     
-    std::string buffer;
-    unsigned char symbol;
+    std::string word;
+    int c;
     
-    while (sourceFile.get(reinterpret_cast<char&>(symbol))) {
-        if (std::isalpha(symbol)) {
-            buffer += static_cast<char>(std::tolower(symbol));
+    while ((c = file.get()) != EOF) {
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+            word += static_cast<char>(c | 32);
         } else {
-            if (!buffer.empty()) {
-                tree.insert(buffer);
-                buffer.clear();
+            if (!word.empty()) {
+                tree.insert(word);
+                word.clear();
             }
         }
     }
     
-    if (!buffer.empty()) {
-        tree.insert(buffer);
+    if (!word.empty()) {
+        tree.insert(word);
     }
     
-    sourceFile.close();
+    file.close();
 }
 
 void printFreq(BST<std::string>& tree) {
-    std::vector<std::pair<std::string, int>> statistics = tree.getAll();
+    auto words = tree.getAll();
     
-    std::sort(statistics.begin(), statistics.end(),
-        [](const std::pair<std::string, int>& first,
-           const std::pair<std::string, int>& second) {
-            return first.second > second.second;
+    std::sort(words.begin(), words.end(),
+        [](const std::pair<std::string, int>& a,
+           const std::pair<std::string, int>& b) {
+            return a.second > b.second;
         });
     
-    std::ofstream outputFile("result/freq.txt");
+    std::ofstream out("result/freq.txt");
     
-    for (const auto& entry : statistics) {
-        std::cout << entry.first << ": " << entry.second << std::endl;
-        if (outputFile.is_open()) {
-            outputFile << entry.first << ": " << entry.second << std::endl;
+    for (const auto& p : words) {
+        std::cout << p.first << " " << p.second << "\n";
+        if (out) {
+            out << p.first << " " << p.second << "\n";
         }
     }
 }
