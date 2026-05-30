@@ -4,6 +4,7 @@
 #include <cctype>
 #include <string>
 #include <algorithm>
+#include <utility>
 #include "bst.h"
 
 void makeTree(BST<std::string>& tree, const char* filename) {
@@ -25,7 +26,6 @@ void makeTree(BST<std::string>& tree, const char* filename) {
             }
         }
     }
-    // последнее слово, если файл не заканчивается разделителем
     if (!word.empty()) {
         tree.add(word);
     }
@@ -35,26 +35,21 @@ void makeTree(BST<std::string>& tree, const char* filename) {
 void printFreq(BST<std::string>& tree) {
     auto freq = tree.getFreqVector();
 
-    // сортировка по убыванию частоты
     std::sort(freq.begin(), freq.end(),
               [](const std::pair<std::string, int>& a,
                  const std::pair<std::string, int>& b) {
                   return a.second > b.second;
               });
 
-    // вывод на экран
     for (const auto& p : freq) {
         std::cout << p.first << ": " << p.second << std::endl;
     }
 
-    // запись в файл result/freq.txt
     std::ofstream out("result/freq.txt");
-    if (!out) {
-        std::cerr << "Cannot open result/freq.txt for writing" << std::endl;
-        return;
+    if (out.is_open()) {
+        for (const auto& p : freq) {
+            out << p.first << ": " << p.second << std::endl;
+        }
+        out.close();
     }
-    for (const auto& p : freq) {
-        out << p.first << ": " << p.second << std::endl;
-    }
-    out.close();
 }
