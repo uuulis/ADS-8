@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <utility>
 
 template<typename T>
 class BST {
@@ -14,7 +15,7 @@ class BST {
         int count;
         Node* left;
         Node* right;
-        Node(const T& k) : key(k), count(1), left(nullptr), right(nullptr) {}
+        explicit Node(const T& k) : key(k), count(1), left(nullptr), right(nullptr) {}
     };
     Node* root;
 
@@ -28,7 +29,7 @@ class BST {
         } else if (key > node->key) {
             insert(node->right, key);
         } else {
-            node->count++;
+            ++(node->count);
         }
     }
 
