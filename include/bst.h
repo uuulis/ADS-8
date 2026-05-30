@@ -2,82 +2,87 @@
 #ifndef INCLUDE_BST_H_
 #define INCLUDE_BST_H_
 
-#include <algorithm>
-#include <string>
 #include <vector>
 #include <utility>
+#include <string>
+#include <algorithm>
 
 template<typename T>
 class BST {
  private:
     struct Node {
-        T key;
-        int count;
-        Node* left;
-        Node* right;
-        explicit Node(const T& k) : key(k), count(1), left(nullptr), right(nullptr) {}
+        T data;
+        int freq;
+        Node* leftChild;
+        Node* rightChild;
+        
+        explicit Node(const T& val) : data(val), freq(1), leftChild(nullptr), rightChild(nullptr) {}
     };
-    Node* root;
 
-    void insert(Node*& node, const T& key) {
-        if (node == nullptr) {
-            node = new Node(key);
-            return;
+    Node* top;
+
+    Node* addNode(Node* current, const T& value) {
+        if (current == nullptr) {
+            return new Node(value);
         }
-        if (key < node->key) {
-            insert(node->left, key);
-        } else if (key > node->key) {
-            insert(node->right, key);
+        
+        if (value < current->data) {
+            current->leftChild = addNode(current->leftChild, value);
+        } else if (value > current->data) {
+            current->rightChild = addNode(current->rightChild, value);
         } else {
-            ++(node->count);
+            current->freq++;
         }
+        return current;
     }
 
-    int depth(Node* node) const {
-        if (node == nullptr) return 0;
-        return 1 + std::max(depth(node->left), depth(node->right));
+    int computeHeight(Node* current) const {
+        if (current == nullptr) return 0;
+        int leftHeight = computeHeight(current->leftChild);
+        int rightHeight = computeHeight(current->rightChild);
+        return 1 + std::max(leftHeight, rightHeight);
     }
 
-    bool search(Node* node, const T& value) const {
-        if (node == nullptr) return false;
-        if (value == node->key) return true;
-        if (value < node->key) return search(node->left, value);
-        return search(node->right, value);
+    bool findKey(Node* current, const T& target) const {
+        if (current == nullptr) return false;
+        if (target == current->data) return true;
+        if (target < current->data) return findKey(current->leftChild, target);
+        return findKey(current->rightChild, target);
     }
 
-    void collect(Node* node, std::vector<std::pair<T, int>>& freq) const {
-        if (node == nullptr) return;
-        collect(node->left, freq);
-        freq.push_back({node->key, node->count});
-        collect(node->right, freq);
+    void gatherData(Node* current, std::vector<std::pair<T, int>>& output) const {
+        if (current == nullptr) return;
+        gatherData(current->leftChild, output);
+        output.push_back({current->data, current->freq});
+        gatherData(current->rightChild, output);
     }
 
-    void clear(Node* node) {
-        if (node == nullptr) return;
-        clear(node->left);
-        clear(node->right);
-        delete node;
+    void eraseTree(Node* current) {
+        if (current == nullptr) return;
+        eraseTree(current->leftChild);
+        eraseTree(current->rightChild);
+        delete current;
     }
 
  public:
-    BST() : root(nullptr) {}
-    ~BST() { clear(root); }
+    BST() : top(nullptr) {}
+    ~BST() { eraseTree(top); }
 
-    void add(const T& key) {
-        insert(root, key);
+    void insert(const T& value) {
+        top = addNode(top, value);
     }
 
     int depth() const {
-        return depth(root);
+        return computeHeight(top);
     }
 
-    bool search(const T& value) const {
-        return search(root, value);
+    int search(const T& target) const {
+        return findKey(top, target) ? 1 : 0;
     }
 
-    std::vector<std::pair<T, int>> getFreqVector() const {
+    std::vector<std::pair<T, int>> getAll() const {
         std::vector<std::pair<T, int>> result;
-        collect(root, result);
+        gatherData(top, result);
         return result;
     }
 };
