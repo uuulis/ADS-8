@@ -11,78 +11,64 @@ template<typename T>
 class BST {
  private:
     struct Node {
-        T data;
-        int freq;
-        Node* leftChild;
-        Node* rightChild;
-        
-        explicit Node(const T& val) : data(val), freq(1), leftChild(nullptr), rightChild(nullptr) {}
+        T key;
+        int count;
+        Node *left, *right;
+        explicit Node(const T& k) : key(k), count(1), left(nullptr), right(nullptr) {}
     };
 
-    Node* top;
+    Node* root;
 
-    Node* addNode(Node* current, const T& value) {
-        if (current == nullptr) {
-            return new Node(value);
-        }
-        
-        if (value < current->data) {
-            current->leftChild = addNode(current->leftChild, value);
-        } else if (value > current->data) {
-            current->rightChild = addNode(current->rightChild, value);
+    Node* insert(Node* node, const T& val) {
+        if (!node) return new Node(val);
+        if (val < node->key) {
+            node->left = insert(node->left, val);
+        } else if (val > node->key) {
+            node->right = insert(node->right, val);
         } else {
-            current->freq++;
+            node->count++;
         }
-        return current;
+        return node;
     }
 
-    int computeHeight(Node* current) const {
-        if (current == nullptr) return 0;
-        int leftHeight = computeHeight(current->leftChild);
-        int rightHeight = computeHeight(current->rightChild);
-        return 1 + std::max(leftHeight, rightHeight);
+    int depth(Node* node) const {
+        if (!node) return 0;
+        int leftDepth = depth(node->left);
+        int rightDepth = depth(node->right);
+        return 1 + (leftDepth > rightDepth ? leftDepth : rightDepth);
     }
 
-    bool findKey(Node* current, const T& target) const {
-        if (current == nullptr) return false;
-        if (target == current->data) return true;
-        if (target < current->data) return findKey(current->leftChild, target);
-        return findKey(current->rightChild, target);
+    int search(Node* node, const T& val) const {
+        if (!node) return 0;
+        if (val == node->key) return node->count;
+        if (val < node->key) return search(node->left, val);
+        return search(node->right, val);
     }
 
-    void gatherData(Node* current, std::vector<std::pair<T, int>>& output) const {
-        if (current == nullptr) return;
-        gatherData(current->leftChild, output);
-        output.push_back({current->data, current->freq});
-        gatherData(current->rightChild, output);
+    void collect(Node* node, std::vector<std::pair<T, int>>& out) const {
+        if (!node) return;
+        collect(node->left, out);
+        out.push_back({node->key, node->count});
+        collect(node->right, out);
     }
 
-    void eraseTree(Node* current) {
-        if (current == nullptr) return;
-        eraseTree(current->leftChild);
-        eraseTree(current->rightChild);
-        delete current;
+    void destroy(Node* node) {
+        if (!node) return;
+        destroy(node->left);
+        destroy(node->right);
+        delete node;
     }
 
  public:
-    BST() : top(nullptr) {}
-    ~BST() { eraseTree(top); }
+    BST() : root(nullptr) {}
+    ~BST() { destroy(root); }
 
-    void insert(const T& value) {
-        top = addNode(top, value);
-    }
-
-    int depth() const {
-        return computeHeight(top);
-    }
-
-    int search(const T& target) const {
-        return findKey(top, target) ? 1 : 0;
-    }
-
+    void insert(const T& val) { root = insert(root, val); }
+    int depth() const { return depth(root); }
+    int search(const T& val) const { return search(root, val); }
     std::vector<std::pair<T, int>> getAll() const {
         std::vector<std::pair<T, int>> result;
-        gatherData(top, result);
+        collect(root, result);
         return result;
     }
 };
