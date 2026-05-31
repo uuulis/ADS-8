@@ -1,54 +1,46 @@
-// Copyright 2021 NNTU-CS
+// Copyright 2025 NNTU-CS
 #include <iostream>
 #include <fstream>
 #include <cctype>
 #include <string>
-#include <algorithm>
-#include <utility>
 #include "bst.h"
 
 void makeTree(BST<std::string>& tree, const char* filename) {
-    std::ifstream file(filename);
-    if (!file) {
-        return;
+  std::ifstream input(filename);
+  if (!input.is_open()) {
+    return;
+  }
+
+  std::string buffer;
+  char symbol;
+  while (input.get(symbol)) {
+    if (std::isalpha(static_cast<unsigned char>(symbol))) {
+      buffer.push_back(std::tolower(static_cast<unsigned char>(symbol)));
+    } else {
+      if (buffer.size() > 0) {
+        tree.add(buffer);
+        buffer = "";
+      }
     }
-    
-    std::string word;
-    int c;
-    
-    while ((c = file.get()) != EOF) {
-        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
-            word += static_cast<char>(c | 32);
-        } else {
-            if (!word.empty()) {
-                tree.insert(word);
-                word.clear();
-            }
-        }
-    }
-    
-    if (!word.empty()) {
-        tree.insert(word);
-    }
-    
-    file.close();
+  }
+  if (buffer.length() > 0) {
+    tree.add(buffer);
+  }
+  input.close();
 }
 
 void printFreq(BST<std::string>& tree) {
-    auto words = tree.getAll();
-    
-    std::sort(words.begin(), words.end(),
-        [](const std::pair<std::string, int>& a,
-           const std::pair<std::string, int>& b) {
-            return a.second > b.second;
-        });
-    
-    std::ofstream out("result/freq.txt");
-    
-    for (const auto& p : words) {
-        std::cout << p.first << " " << p.second << "\n";
-        if (out) {
-            out << p.first << " " << p.second << "\n";
-        }
+  std::vector<std::pair<std::string, int>> items = tree.getAll();
+  
+  for (size_t idx = 0; idx < items.size(); ++idx) {
+    std::cout << items[idx].first << " " << items[idx].second << std::endl;
+  }
+
+  std::ofstream output("result/freq.txt");
+  if (output.good()) {
+    for (size_t pos = 0; pos < items.size(); ++pos) {
+      output << items[pos].first << " " << items[pos].second << std::endl;
     }
+    output.close();
+  }
 }
