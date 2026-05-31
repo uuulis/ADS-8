@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cctype>
 #include <string>
+#include <vector>
 #include "bst.h"
 
 void makeTree(BST<std::string>& tree, const char* filename) {
@@ -31,7 +32,7 @@ void makeTree(BST<std::string>& tree, const char* filename) {
 
 void printFreq(BST<std::string>& tree) {
   std::vector<std::pair<std::string, int>> items = tree.getAll();
-  
+
   for (size_t idx = 0; idx < items.size(); ++idx) {
     std::cout << items[idx].first << " " << items[idx].second << std::endl;
   }
